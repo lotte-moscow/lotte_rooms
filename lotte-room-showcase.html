@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Номера — Lotte Hotel Moscow</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+  :root {
+    --bg: var(--tg-theme-bg-color, #faf8f5);
+    --secondary-bg: var(--tg-theme-secondary-bg-color, #f0ece5);
+    --text: var(--tg-theme-text-color, #1c1a17);
+    --hint: var(--tg-theme-hint-color, #8a8378);
+    --link: var(--tg-theme-link-color, #9a7b4f);
+    --button: var(--tg-theme-button-color, #1c1a17);
+    --button-text: var(--tg-theme-button-text-color, #ffffff);
+    --accent: #9a7b4f;
+    --border: rgba(28, 26, 23, 0.08);
+  }
+
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+
+  #app { min-height: 100vh; padding-bottom: 24px; }
+
+  header.top {
+    padding: 20px 16px 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+  }
+
+  header.top .title { font-size: 20px; font-weight: 600; letter-spacing: 0.2px; }
+  header.top .subtitle { font-size: 13px; color: var(--hint); margin-top: 2px; }
+
+  .lang-toggle {
+    display: flex;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+  .lang-toggle button {
+    border: none;
+    background: transparent;
+    color: var(--hint);
+    font-size: 12px;
+    padding: 6px 10px;
+    cursor: pointer;
+  }
+  .lang-toggle button.active { background: var(--text); color: var(--bg); }
+
+  .view { display: none; }
+  .view.active { display: block; }
+
+  .cards { padding: 4px 16px 16px; display: flex; flex-direction: column; gap: 10px; }
+
+  .card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: var(--secondary-bg);
+    border-radius: 14px;
+    padding: 10px;
+    cursor: pointer;
+    border: 1px solid var(--border);
+  }
+
+  .card .thumb {
+    width: 72px;
+    height: 72px;
+    border-radius: 10px;
+    flex-shrink: 0;
+    object-fit: cover;
+    background: linear-gradient(135deg, var(--accent), #cbb897);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: rgba(255,255,255,0.85);
+    font-size: 10px;
+    text-align: center;
+    line-height: 1.3;
+  }
+
+  .card .body { flex: 1; min-width: 0; }
+  .card .name { font-size: 15px; font-weight: 600; }
+  .card .facts { font-size: 12.5px; color: var(--hint); margin-top: 3px; }
+  .card .price { font-size: 12.5px; color: var(--accent); margin-top: 4px; font-weight: 500; }
+  .card .chevron { color: var(--hint); font-size: 18px; flex-shrink: 0; }
+
+  #view-detail { padding: 0 16px 16px; }
+
+  .detail-photo {
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    border-radius: 14px;
+    object-fit: cover;
+    background: linear-gradient(135deg, var(--accent), #cbb897);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: rgba(255,255,255,0.9);
+    font-size: 13px;
+    text-align: center;
+    padding: 20px;
+    margin-top: 8px;
+  }
+
+  .detail-name { font-size: 22px; font-weight: 700; margin-top: 16px; }
+  .detail-tagline { font-size: 14px; color: var(--hint); margin-top: 4px; }
+
+  .fact-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-top: 18px;
+  }
+  .fact {
+    background: var(--secondary-bg);
+    border-radius: 12px;
+    padding: 12px;
+    border: 1px solid var(--border);
+  }
+  .fact .label { font-size: 11px; color: var(--hint); text-transform: uppercase; letter-spacing: 0.4px; }
+  .fact .value { font-size: 14.5px; font-weight: 600; margin-top: 3px; }
+
+  .amenities { margin-top: 18px; }
+  .amenities .h { font-size: 13px; color: var(--hint); margin-bottom: 8px; }
+  .amenity-row { display: flex; flex-wrap: wrap; gap: 6px; }
+  .pill {
+    font-size: 12.5px;
+    padding: 6px 10px;
+    background: var(--secondary-bg);
+    border: 1px solid var(--border);
+    border-radius: 100px;
+  }
+
+  .detail-price { margin-top: 18px; font-size: 15px; }
+  .detail-price .amount { font-weight: 700; }
+
+  .source-link { display: inline-block; margin-top: 10px; font-size: 12px; color: var(--accent); text-decoration: none; }
+
+  .placeholder-note {
+    margin-top: 20px;
+    font-size: 11.5px;
+    color: var(--hint);
+    border-top: 1px dashed var(--border);
+    padding-top: 10px;
+  }
+
+  .fallback-banner {
+    margin: 12px 16px 0;
+    padding: 10px 12px;
+    background: #fff3cd;
+    color: #6b5300;
+    border-radius: 10px;
+    font-size: 12px;
+    display: none;
+  }
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="fallback-banner" id="fallbackBanner">
+    Просмотр вне Telegram — часть функций (кнопки Telegram, тема) недоступна. Откройте через бота, чтобы увидеть настоящий вид.
+  </div>
+
+  <header class="top">
+    <div>
+      <div class="title" id="hotelTitle">Lotte Hotel Moscow</div>
+      <div class="subtitle" id="hotelSubtitle">Выберите категорию номера</div>
+    </div>
+    <div class="lang-toggle">
+      <button id="btnRu" class="active">RU</button>
+      <button id="btnEn">EN</button>
+    </div>
+  </header>
+
+  <div id="view-list" class="view active">
+    <div class="cards" id="cards"></div>
+  </div>
+
+  <div id="view-detail" class="view">
+    <div id="detailPhotoWrap"></div>
+    <div class="detail-name" id="detailName"></div>
+    <div class="detail-tagline" id="detailTagline"></div>
+
+    <div class="fact-grid" id="detailFacts"></div>
+
+    <div class="amenities">
+      <div class="h" id="amenitiesLabel">Удобства</div>
+      <div class="amenity-row" id="detailAmenities"></div>
+    </div>
+
+    <div class="detail-price" id="detailPrice"></div>
+    <a class="source-link" id="detailSource" target="_blank">Страница номера на сайте отеля ↗</a>
+
+    <div class="placeholder-note" id="placeholderNote"></div>
+  </div>
+</div>
+
+<script>
+(function () {
+  var tg = window.Telegram && window.Telegram.WebApp;
+
+  if (tg) {
+    tg.ready();
+    tg.expand();
+  } else {
+    document.getElementById('fallbackBanner').style.display = 'block';
+  }
+
+  // ---- ДАННЫЕ ВЗЯТЫ С lottehotelmoscow.ru (октябрь 2026) ----
+  // Площадь, вид и удобства - с официального сайта отеля. Тариф не публикуется на сайте,
+  // уточняется сотрудником вручную по актуальным ставкам. Перед запуском сверить с сайтом.
+  var categories = [
+    {
+      id: 'superior', pms: 'NOKC',
+      name: { ru: 'Superior', en: 'Superior' },
+      tagline: { ru: 'Комфортный номер для короткого и длительного проживания', en: 'A comfortable room for short and extended stays' },
+      area: { ru: '42 м²', en: '42 sqm' },
+      bed: { ru: 'King или Twin', en: 'King or Twin' },
+      view: { ru: 'Исторический или деловой центр', en: 'Historical or business centre' },
+      amenities: { ru: ['Wi-Fi', 'Nespresso', 'Сейф', 'Бассейн и спа'], en: ['Wi-Fi', 'Nespresso machine', 'Safe', 'Pool & spa access'] },
+      photo: 'https://lottehotelmoscow.ru/upload/resize_cache/iblock/829/1340_837_2619711fa078991f0a23d032687646b21/c1rokgb875imliord74rin36bsbm3pqt.jpg',
+      source: 'https://lottehotelmoscow.ru/en/rooms/superior-room/'
+    },
+    {
+      id: 'deluxe', pms: 'NHKC',
+      name: { ru: 'Deluxe', en: 'Deluxe' },
+      tagline: { ru: 'Просторнее, с увеличенной площадью', en: 'More space for a relaxed stay' },
+      area: { ru: '50 м²', en: '50 sqm' },
+      bed: { ru: 'King или Twin, до 3 гостей', en: 'King or Twin, up to 3 guests' },
+      view: { ru: 'Исторический или деловой центр', en: 'Historical or business centre' },
+      amenities: { ru: ['Wi-Fi', 'Ванна и душ', 'Утюг', 'До 3 гостей'], en: ['Wi-Fi', 'Bath & shower', 'Iron board', 'Up to 3 guests'] },
+      photo: 'https://lottehotelmoscow.ru/upload/resize_cache/iblock/b54/1340_836_2619711fa078991f0a23d032687646b21/3bcae13q5uci3vtsakj6ca1qed16y9nk.jpg',
+      source: 'https://lottehotelmoscow.ru/en/rooms/deluxe-room/'
+    },
+    {
+      id: 'luxury', pms: 'NPKC',
+      name: { ru: 'Luxury', en: 'Luxury' },
+      tagline: { ru: 'Повышенный комфорт и доступ к спа', en: 'Elevated comfort with spa access' },
+      area: { ru: '60 м²', en: '60 sqm' },
+      bed: { ru: 'King или King+Single', en: 'King or King+Single' },
+      view: { ru: 'Город или внутренний двор', en: 'City or courtyard' },
+      amenities: { ru: ['Тропический душ', 'Сауна, хаммам, джакузи', 'Nespresso'], en: ['Tropical shower', 'Sauna, hammam, jacuzzi', 'Nespresso machine'] },
+      photo: 'https://lottehotelmoscow.ru/upload/resize_cache/iblock/ddc/1340_836_2619711fa078991f0a23d032687646b21/k63lfxib50l0hmawv655jfte97g0mzih.jpg',
+      source: 'https://lottehotelmoscow.ru/en/rooms/luxury-room/'
+    },
+    {
+      id: 'atrium-suite', pms: '-',
+      name: { ru: 'Atrium Suite', en: 'Atrium Suite' },
+      tagline: { ru: 'Приватный балкон с видом на зимний сад', en: 'A private balcony overlooking the winter garden' },
+      area: { ru: '60 м²', en: '60 sqm' },
+      bed: { ru: 'King', en: 'King' },
+      view: { ru: 'Внутренний двор и зимний сад', en: 'Courtyard & winter garden' },
+      amenities: { ru: ['Приватный балкон', 'Club Lounge', 'ТВ в ванной'], en: ['Private balcony', 'Club Lounge', 'TV in bathroom'] },
+      photo: 'https://lottehotelmoscow.ru/upload/resize_cache/iblock/ffe/1340_836_2619711fa078991f0a23d032687646b21/gl5w2wbbs7hp7e903bskn4yvfr48zlse.jpg',
+      source: 'https://lottehotelmoscow.ru/en/rooms/atrium-suite/'
+    },
+    {
+      id: 'business-suite', pms: '-',
+      name: { ru: 'Business Suite', en: 'Business Suite' },
+      tagline: { ru: 'Для деловых поездок и приёма гостей', en: 'Built for business travel and hosting guests' },
+      area: { ru: '83 м²', en: '83 sqm' },
+      bed: { ru: 'King, до 2 гостей', en: 'King, up to 2 guests' },
+      view: { ru: 'Новинский бульвар, Садовое кольцо', en: 'Novinsky Boulevard, Garden Ring' },
+      amenities: { ru: ['2 ванные комнаты', 'Гостиная зона', 'Club Lounge'], en: ['2 bathrooms', 'Living area', 'Club Lounge'] },
+      photo: 'https://lottehotelmoscow.ru/upload/resize_cache/iblock/7ea/1340_836_2619711fa078991f0a23d032687646b21/ha5pdsn1pkdesbg80ifklqll0s81wrgg.jpg',
+      source: 'https://lottehotelmoscow.ru/en/rooms/business-suite/'
+    },
+    {
+      id: 'junior-suite', pms: 'S2KC',
+      name: { ru: 'Junior Suite', en: 'Junior Suite' },
+      tagline: { ru: 'Отдельная гостиная в неоклассическом стиле', en: 'A separate living room in neoclassical style' },
+      area: { ru: '74-80 м²', en: '74-80 sqm' },
+      bed: { ru: 'King или Twin', en: 'King or Twin' },
+      view: { ru: 'Исторический или деловой центр', en: 'Historical or business centre' },
+      amenities: { ru: ['Неоклассический стиль', 'Отдельная гостиная', 'Club Lounge'], en: ['Neoclassical style', 'Separate living room', 'Club Lounge'] },
+      photo: null,
+      source: 'https://lottehotelmoscow.ru/en/rooms/junior-suite/'
+    },
+    {
+      id: 'junior-premier-suite', pms: 'SPKC',
+      name: { ru: 'Junior Premier Suite', en: 'Junior Premier Suite' },
+      tagline: { ru: 'Кабинет и светлая гостиная', en: 'A study and a bright living room' },
+      area: { ru: '85 м²', en: '85 sqm' },
+      bed: { ru: 'King, до 2 гостей', en: 'King, up to 2 guests' },
+      view: { ru: 'Садовое кольцо', en: 'Garden Ring' },
+      amenities: { ru: ['Кабинет', 'Светлая гостиная', 'Переговорные в лаундже'], en: ['Study', 'Bright living room', 'Meeting rooms in lounge'] },
+      photo: 'https://lottehotelmoscow.ru/upload/resize_cache/iblock/7be/1340_836_2619711fa078991f0a23d032687646b21/8hltvgm7vr3itacfpaw4nltvedawb13u.jpg',
+      source: 'https://lottehotelmoscow.ru/en/rooms/junior-premier-suite/'
+    },
+    {
+      id: 'executive-suite', pms: 'STKC',
+      name: { ru: 'Executive Suite', en: 'Executive Suite' },
+      tagline: { ru: 'Полноценный номер-люкс с рабочей зоной', en: 'A full suite with a dedicated workspace' },
+      area: { ru: '71 м²', en: '71 sqm' },
+      bed: { ru: 'King, до 3 гостей', en: 'King, up to 3 guests' },
+      view: { ru: 'Исторический или деловой центр', en: 'Historical or business centre' },
+      amenities: { ru: ['Рабочая зона', 'ТВ в ванной', 'Club Lounge, 4 этаж'], en: ['Workspace', 'TV in bathroom', 'Club Lounge, 4th floor'] },
+      photo: 'https://lottehotelmoscow.ru/upload/resize_cache/iblock/622/1340_836_2619711fa078991f0a23d032687646b21/goeyzv9jtt04p4bjtzqwu9ny77jo2a9x.jpg',
+      source: 'https://lottehotelmoscow.ru/en/rooms/executive-suite/'
+    },
+    {
+      id: 'executive-premier-suite', pms: 'SPKZ',
+      name: { ru: 'Executive Premier Suite', en: 'Executive Premier Suite' },
+      tagline: { ru: 'Люкс с видом на Садовое кольцо', en: 'A suite overlooking the Garden Ring' },
+      area: { ru: '71 м²', en: '71 sqm' },
+      bed: { ru: 'King, до 3 гостей', en: 'King, up to 3 guests' },
+      view: { ru: 'Садовое кольцо или деловой центр', en: 'Garden Ring or business centre' },
+      amenities: { ru: ['Кабинет', '5 презентаций в лаундже в день', 'Мраморная ванная'], en: ['Study', '5 lounge presentations daily', 'Marble bathroom'] },
+      photo: 'https://lottehotelmoscow.ru/upload/resize_cache/iblock/e40/1340_837_2619711fa078991f0a23d032687646b21/aqjvtmwrpbh3dez1fry8hf3yqfugdtx5.jpg',
+      source: 'https://lottehotelmoscow.ru/en/rooms/executive-premier-suite/'
+    },
+    {
+      id: 'grand-suite', pms: 'SGRZ',
+      name: { ru: 'Grand Suite', en: 'Grand Suite' },
+      tagline: { ru: 'Две спальни для большой компании', en: 'Two bedrooms for a larger group' },
+      area: { ru: '220 м²', en: '220 sqm' },
+      bed: { ru: 'King, до 5 гостей', en: 'King, up to 5 guests' },
+      view: { ru: 'Садовое кольцо', en: 'Garden Ring' },
+      amenities: { ru: ['2 спальни', '2 ванные', 'Гостиная на 6 человек'], en: ['2 bedrooms', '2 bathrooms', 'Living room seats 6'] },
+      photo: 'https://lottehotelmoscow.ru/upload/resize_cache/iblock/1cf/1340_836_2619711fa078991f0a23d032687646b21/mycbonqg7i3qm7iurzkd5xmh5ldf817o.jpg',
+      source: 'https://lottehotelmoscow.ru/en/rooms/grand-suite/'
+    },
+    {
+      id: 'charlotte-suite', pms: 'S3KC',
+      name: { ru: 'Charlotte Suite', en: 'Charlotte Suite' },
+      tagline: { ru: 'Люкс, отражающий наследие бренда LOTTE', en: "A suite reflecting LOTTE's brand heritage" },
+      area: { ru: '100 м²', en: '100 sqm' },
+      bed: { ru: 'King, до 3 гостей', en: 'King, up to 3 guests' },
+      view: { ru: 'Исторический и деловой центр (верхние этажи)', en: 'Historical & business centre (upper floors)' },
+      amenities: { ru: ['Гардеробная', 'Джакузи', 'Bang & Olufsen'], en: ['Dressing room', 'Jacuzzi', 'Bang & Olufsen audio'] },
+      photo: 'https://lottehotelmoscow.ru/upload/resize_cache/iblock/363/1340_836_2619711fa078991f0a23d032687646b21/0tpi3g6ds1fna65nv7x1wz9wsdnw2gfv.jpg',
+      source: 'https://lottehotelmoscow.ru/en/rooms/charlotte-suite/'
+    },
+    {
+      id: 'presidential-suite', pms: 'SFKC',
+      name: { ru: 'Presidential Suite', en: 'Presidential Suite' },
+      tagline: { ru: 'Флагманский номер отеля', en: "The hotel's flagship suite" },
+      area: { ru: '171 м²', en: '171 sqm' },
+      bed: { ru: 'King, до 4 гостей, 9 этаж', en: 'King, up to 4 guests, 9th floor' },
+      view: { ru: 'Панорама города', en: 'Panoramic city view' },
+      amenities: { ru: ['Отдельная кухня', 'Стол на 8 человек', 'Джакузи'], en: ['Private kitchen', 'Table for 8', 'Jacuzzi'] },
+      photo: 'https://lottehotelmoscow.ru/upload/resize_cache/iblock/79b/1340_837_2619711fa078991f0a23d032687646b21/mmv4uq83kuuy36phexguy1ij5lgqy6ig.jpg',
+      source: 'https://lottehotelmoscow.ru/en/rooms/presidential-suite/'
+    },
+    {
+      id: 'royal-suite', pms: 'SRKC',
+      name: { ru: 'Royal Suite', en: 'Royal Suite' },
+      tagline: { ru: 'Крупнейший номер в России', en: "Russia's largest hotel suite" },
+      area: { ru: '490 м²', en: '490 sqm' },
+      bed: { ru: 'King + вторая спальня', en: 'King + second bedroom' },
+      view: { ru: 'Садовое кольцо', en: 'Garden Ring' },
+      amenities: { ru: ['Рояль Bechstein', 'Библиотека', 'Переговорная на 14'], en: ['Bechstein grand piano', 'Library', 'Meeting room for 14'] },
+      photo: 'https://lottehotelmoscow.ru/upload/resize_cache/iblock/be0/1340_837_2619711fa078991f0a23d032687646b21/82cav4qwbzkksozep804kahry7bp6366.jpg',
+      source: 'https://lottehotelmoscow.ru/en/rooms/royal-suite/'
+    }
+  ];
+
+  var lang = 'ru';
+
+  var strings = {
+    ru: { subtitle: 'Выберите категорию номера', amenitiesLabel: 'Удобства', note: 'Данные взяты с сайта отеля (lottehotelmoscow.ru). Тариф определяется отделом бронирования по актуальным ставкам.', price: 'Тариф по запросу', photoMissing: 'Фото — см. страницу номера на сайте', back: 'Назад', mainBtn: 'Написать нам про этот номер' },
+    en: { subtitle: 'Choose a room category', amenitiesLabel: 'Amenities', note: 'Data sourced from the hotel website (lottehotelmoscow.ru). Rate is quoted by the reservations team.', price: 'Rate on request', photoMissing: 'Photo — see room page on website', back: 'Back', mainBtn: 'Ask us about this room' }
+  };
+
+  var cardsEl = document.getElementById('cards');
+  var viewList = document.getElementById('view-list');
+  var viewDetail = document.getElementById('view-detail');
+
+  function renderCards() {
+    cardsEl.innerHTML = '';
+    categories.forEach(function (c) {
+      var card = document.createElement('div');
+      card.className = 'card';
+      var thumbHtml = c.photo
+        ? '<img class="thumb" src="' + c.photo + '" onerror="this.outerHTML=\'<div class=&quot;thumb&quot;>' + (lang === 'ru' ? 'ФОТО' : 'PHOTO') + '</div>\'">'
+        : '<div class="thumb">' + (lang === 'ru' ? 'ФОТО' : 'PHOTO') + '</div>';
+      card.innerHTML =
+        thumbHtml +
+        '<div class="body">' +
+          '<div class="name">' + c.name[lang] + '</div>' +
+          '<div class="facts">' + c.area[lang] + ' · ' + c.bed[lang] + '</div>' +
+          '<div class="price">' + strings[lang].price + '</div>' +
+        '</div>' +
+        '<div class="chevron">›</div>';
+      card.addEventListener('click', function () { openDetail(c); });
+      cardsEl.appendChild(card);
+    });
+  }
+
+  function openDetail(c) {
+    var photoWrap = document.getElementById('detailPhotoWrap');
+    if (c.photo) {
+      photoWrap.innerHTML = '<img class="detail-photo" src="' + c.photo + '" onerror="this.outerHTML=\'<div class=&quot;detail-photo&quot;>' + strings[lang].photoMissing + '</div>\'">';
+    } else {
+      photoWrap.innerHTML = '<div class="detail-photo">' + strings[lang].photoMissing + '</div>';
+    }
+
+    document.getElementById('detailName').textContent = c.name[lang];
+    document.getElementById('detailTagline').textContent = c.tagline[lang];
+
+    var facts = document.getElementById('detailFacts');
+    facts.innerHTML = '';
+    var pairs = [
+      [lang === 'ru' ? 'Площадь' : 'Area', c.area[lang]],
+      [lang === 'ru' ? 'Кровать' : 'Bed', c.bed[lang]],
+      [lang === 'ru' ? 'Вид' : 'View', c.view[lang]],
+      [lang === 'ru' ? 'Код PMS' : 'PMS code', c.pms]
+    ];
+    pairs.forEach(function (p) {
+      var f = document.createElement('div');
+      f.className = 'fact';
+      f.innerHTML = '<div class="label">' + p[0] + '</div><div class="value">' + p[1] + '</div>';
+      facts.appendChild(f);
+    });
+
+    document.getElementById('amenitiesLabel').textContent = strings[lang].amenitiesLabel;
+    var am = document.getElementById('detailAmenities');
+    am.innerHTML = '';
+    c.amenities[lang].forEach(function (a) {
+      var pill = document.createElement('div');
+      pill.className = 'pill';
+      pill.textContent = a;
+      am.appendChild(pill);
+    });
+
+    document.getElementById('detailPrice').innerHTML = '<span class="amount">' + strings[lang].price + '</span>';
+    document.getElementById('detailSource').href = c.source;
+    document.getElementById('detailSource').textContent = (lang === 'ru' ? 'Страница номера на сайте отеля' : 'Room page on hotel website') + ' ↗';
+    document.getElementById('placeholderNote').textContent = strings[lang].note;
+
+    viewList.classList.remove('active');
+    viewDetail.classList.add('active');
+
+    if (tg) {
+      tg.BackButton.show();
+      tg.MainButton.setText(strings[lang].mainBtn);
+      tg.MainButton.show();
+      tg.MainButton.offClick(mainButtonHandler);
+      tg.MainButton.onClick(mainButtonHandler);
+    }
+  }
+
+  function mainButtonHandler() {
+    if (tg && tg.sendData) {
+      try { tg.sendData(JSON.stringify({ action: 'ask_about_room' })); } catch (e) {}
+    }
+  }
+
+  function backToList() {
+    viewDetail.classList.remove('active');
+    viewList.classList.add('active');
+    if (tg) {
+      tg.BackButton.hide();
+      tg.MainButton.hide();
+    }
+  }
+
+  if (tg) {
+    tg.BackButton.onClick(backToList);
+  }
+
+  function setLang(newLang) {
+    lang = newLang;
+    document.getElementById('btnRu').classList.toggle('active', lang === 'ru');
+    document.getElementById('btnEn').classList.toggle('active', lang === 'en');
+    document.getElementById('hotelSubtitle').textContent = strings[lang].subtitle;
+    renderCards();
+  }
+
+  document.getElementById('btnRu').addEventListener('click', function () { setLang('ru'); });
+  document.getElementById('btnEn').addEventListener('click', function () { setLang('en'); });
+
+  renderCards();
+})();
+</script>
+</body>
+</html>
